@@ -17,6 +17,15 @@ def test_conformal_pvalues_are_valid_under_exchangeability():
     assert hits / reps <= alpha + 3 * np.sqrt(alpha * (1 - alpha) / reps)
 
 
+def test_randomised_pvalues_are_uniform_with_heavy_ties():
+    rng = np.random.default_rng(3)
+    x = rng.integers(0, 3, size=(20000, 21)).astype(float)       # discrete statistic: many ties
+    p = mc_pvalue(x[:, 0], x[:, 1:], rng=rng)
+    assert abs(np.mean(p <= 0.1) - 0.1) < 0.01 and abs(np.mean(p <= 0.5) - 0.5) < 0.015
+    q = np.array([conformal_pvalues(r[1:], r[:1], rng=rng)[0] for r in x[:5000]])
+    assert abs(np.mean(q <= 0.2) - 0.2) < 0.02
+
+
 def test_conformal_pvalue_formula():
     p = conformal_pvalues([1.0, 2.0, 3.0], [0.0, 2.0, 10.0])
     np.testing.assert_allclose(p, [4 / 4, 3 / 4, 1 / 4])
@@ -27,6 +36,7 @@ def test_cauchy_combination_fixed_points():
     np.testing.assert_allclose(cauchy_combine([0.2, 0.2, 0.2]), 0.2)
     assert cauchy_combine([1e-20, 0.9]) < 1e-19              # a tiny p-value dominates, no underflow
     assert np.isfinite(cauchy_combine([1e-300, 1e-300]))
+    assert cauchy_combine([1e-4, 1.0, 1.0]) < 0.01           # p = 1 statistics must not swamp a strong signal
 
 
 def test_bh_matches_hand_computation():

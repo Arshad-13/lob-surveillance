@@ -59,7 +59,9 @@ def make_panel(view, has_dt: bool, last_context_event: np.ndarray, fast_log_dt: 
     if has_dt:
         if fast_log_dt is None:
             raise ValueError("fast_log_dt is required when the data has inter-event times")
-        panel["n_fast"] = lambda Y: np.cumsum(phys(Y)[..., LOG_DT] < fast_log_dt, axis=1).astype(float)
+        # "at or below": with millisecond timestamps the low quantiles of the inter-event time are the floor (two
+        # events in the same millisecond), and a strict inequality would never count anything
+        panel["n_fast"] = lambda Y: np.cumsum(phys(Y)[..., LOG_DT] <= fast_log_dt + 1e-9, axis=1).astype(float)
     return panel
 
 

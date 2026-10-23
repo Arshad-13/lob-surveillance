@@ -18,26 +18,42 @@ Convention throughout: a larger score means a more unusual window.
 import numpy as np
 
 
-def mc_pvalue(observed, simulated, axis=-1):
-    """observed [...], simulated [..., n] (draws along `axis`) -> p [...]."""
+def mc_pvalue(observed, simulated, axis=-1, rng=None):
+    """
+    observed [...], simulated [..., n] (draws along `axis`) -> p [...].
+    With rng, ties are broken at random: p = (#{sim > obs} + U (1 + #{sim = obs})) / (n + 1), U ~ U(0, 1), which
+    is exactly uniform under exchangeability. Without it, ties count as exceedances (conservative), which for
+    discrete statistics such as counts piles p-values up near 1.
+    """
     sim = np.moveaxis(np.asarray(simulated, dtype=float), axis, -1)
     obs = np.asarray(observed, dtype=float)[..., None]
-    return (1.0 + (sim >= obs).sum(-1)) / (1.0 + sim.shape[-1])
+    if rng is None:
+        return (1.0 + (sim >= obs).sum(-1)) / (1.0 + sim.shape[-1])
+    gt, eq = (sim > obs).sum(-1), (sim == obs).sum(-1)
+    return (gt + rng.random(gt.shape) * (1.0 + eq)) / (1.0 + sim.shape[-1])
 
 
-def conformal_pvalues(cal_scores, test_scores):
-    """p_j = (1 + #{i : cal_i >= test_j}) / (n_cal + 1)."""
+def conformal_pvalues(cal_scores, test_scores, rng=None):
+    """p_j = (1 + #{i : cal_i >= test_j}) / (n_cal + 1); with rng, ties are broken at random as in mc_pvalue."""
     cal = np.sort(np.asarray(cal_scores, dtype=float))
     test = np.asarray(test_scores, dtype=float)
     n_ge = len(cal) - np.searchsorted(cal, test, side="left")
-    return (1.0 + n_ge) / (len(cal) + 1.0)
+    if rng is None:
+        return (1.0 + n_ge) / (len(cal) + 1.0)
+    n_gt = len(cal) - np.searchsorted(cal, test, side="right")
+    return (n_gt + rng.random(test.shape) * (1.0 + n_ge - n_gt)) / (len(cal) + 1.0)
 
 
-def cauchy_combine(p, axis=-1, weights=None):
-    """Cauchy combination of p-values along `axis`; weights default to equal and are normalised to sum to 1."""
+def cauchy_combine(p, axis=-1, weights=None, p_max=0.99):
+    """
+    Cauchy combination of p-values along `axis`; weights default to equal and are normalised to sum to 1.
+    p-values are capped at p_max: tan((0.5 - p) pi) goes to minus infinity as p -> 1, so a single p-value of 1
+    (common for discrete statistics, e.g. a count that is 0) would otherwise swamp every other statistic.
+    Capping only affects values that carry no evidence against the null.
+    """
     p = np.moveaxis(np.asarray(p, dtype=float), axis, -1)
     w = np.full(p.shape[-1], 1.0 / p.shape[-1]) if weights is None else np.asarray(weights, float) / np.sum(weights)
-    p = np.clip(p, 1e-300, 1.0 - 1e-16)
+    p = np.clip(p, 1e-300, p_max)
     # tan((0.5 - p) pi) loses precision for tiny p; 1 / (p pi) is its leading term there
     t = np.where(p < 1e-15, 1.0 / (p * np.pi), np.tan((0.5 - p) * np.pi))
     T = (t * w).sum(-1)
