@@ -16,7 +16,8 @@ def test_null_pvalues_on_real_and_injected_window():
     from lobsurv.null_model import GeneratorNull, generator_provenance
     from lobsurv.statistics import LOG_BID, LOG_DT, make_panel
 
-    assert generator_provenance()["commit"]
+    prov = generator_provenance()
+    assert prov["commit"] and len(prov["file_sha256"]) >= 6
     null = GeneratorNull("BN_BTCUSDT")
     S, view = null.stream, null.view
     s = int(null.offsets["test"]) + 50_000

@@ -72,6 +72,7 @@ def main():
     ap.add_argument("--seed", type=int, default=0)
     a = ap.parse_args()
     t_start = time.perf_counter()
+    provenance = generator_provenance()          # first, so a failure here costs nothing
     rng = np.random.default_rng(a.seed)
     null = GeneratorNull(a.dataset, parts=("train", "val"))
     S, view, H = null.stream, null.view, null.horizon
@@ -109,7 +110,7 @@ def main():
         out[label] = {"gen": np.array(gp), "unc": np.array(up)}       # [n, variants, stats]
 
     res = {"dataset": a.dataset, "seed": a.seed, "m": a.m, "q": Q, "prevalence": PREVALENCE, "statistics": names,
-           "settings": SETTINGS, "n": {"A": len(A), "B": len(B), "E": len(E)}, "provenance": generator_provenance(),
+           "settings": SETTINGS, "n": {"A": len(A), "B": len(B), "E": len(E)}, "provenance": provenance,
            "detectors": {}}
     for det in ("gen", "unc"):
         cal = score(out["B"][det][:, 0])

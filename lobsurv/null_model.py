@@ -38,12 +38,31 @@ def generator_repo() -> str:
     return repo
 
 
+GENERATOR_FILES = ["ML/benchmark/pilot_activity.py", "ML/benchmark/pilot_splitting.py", "ML/benchmark/common.py",
+                   "ML/benchmark/run_benchmark.py", "ML/ctesn/splitting.py", "ML/ctesn/readout.py",
+                   "shared_resources/lob_data.py", "shared_resources/binance_data.py"]
+
+
 def generator_provenance() -> Dict:
-    """Commit and uncommitted-change count of the generator repository, to store with every result."""
+    """
+    What generator code produced a result, to store with every result: the commit and uncommitted-change count of
+    the generator repository when git is available, and always the SHA-256 of the files the bridge relies on
+    (cluster copies have no .git and compute nodes have no git binary).
+    """
+    import hashlib
     repo = generator_repo()
-    git = lambda *a: subprocess.run(["git", "-C", repo, *a], capture_output=True, text=True).stdout.strip()
-    return {"repo": repo, "commit": git("rev-parse", "HEAD"),
-            "uncommitted_files": len([l for l in git("status", "--porcelain").splitlines() if l.strip()])}
+    out = {"repo": repo, "file_sha256": {}}
+    for f in GENERATOR_FILES:
+        p = os.path.join(repo, f)
+        if os.path.exists(p):
+            out["file_sha256"][f] = hashlib.sha256(open(p, "rb").read()).hexdigest()
+    try:
+        git = lambda *a: subprocess.run(["git", "-C", repo, *a], capture_output=True, text=True).stdout.strip()
+        out["commit"] = git("rev-parse", "HEAD") or None
+        out["uncommitted_files"] = len([l for l in git("status", "--porcelain").splitlines() if l.strip()])
+    except (FileNotFoundError, OSError):
+        out["commit"] = None
+    return out
 
 
 class GeneratorNull:
