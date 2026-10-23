@@ -15,6 +15,8 @@ Which footprint each statistic targets:
                      (the mechanism of Cartea, Jaimungal and Wang, Appl. Math. Finance 2020)
   queue_jump         the add and the cancel of such an order: one-event jumps in a best queue at
                      events that leave both best prices unchanged
+  queue_roundtrip    the add-then-cancel signature: a same-price jump up in a best queue followed within
+                     ROUNDTRIP_LAG events by a jump down in the same queue (score: the smaller of the two)
   n_fast             quote stuffing: bursts of events with tiny inter-event times
 """
 
@@ -23,6 +25,7 @@ from typing import Callable, Dict
 import numpy as np
 
 DMID, SPREAD, LOG_BID, LOG_ASK, LOG_DT = range(5)
+ROUNDTRIP_LAG = 50
 
 
 def make_panel(view, has_dt: bool, last_context_event: np.ndarray, fast_log_dt: float = None) -> Dict[str, Callable]:
@@ -49,12 +52,26 @@ def make_panel(view, has_dt: bool, last_context_event: np.ndarray, fast_log_dt: 
         same = (np.abs(P[..., DMID]) < 0.25) & (np.abs(P[..., SPREAD] - prev[..., SPREAD]) < 0.5)
         return np.where(same, np.abs(P[..., [LOG_BID, LOG_ASK]] - prev[..., [LOG_BID, LOG_ASK]]).max(-1), 0.0)
 
+    def queue_roundtrip(Y):
+        # an add followed by a cancel: at events leaving both prices unchanged, a jump up in a best queue and,
+        # within ROUNDTRIP_LAG events, a jump down in the same queue; the score is the smaller of the two
+        P = phys(Y)
+        prev = np.concatenate([np.broadcast_to(ref, (len(P), 1, P.shape[-1])), P[:, :-1]], axis=1)
+        same = (np.abs(P[..., DMID]) < 0.25) & (np.abs(P[..., SPREAD] - prev[..., SPREAD]) < 0.5)
+        c = np.where(same[..., None], P[..., [LOG_BID, LOG_ASK]] - prev[..., [LOG_BID, LOG_ASK]], 0.0)
+        up, down = np.maximum(c, 0.0), np.maximum(-c, 0.0)
+        best_up = np.zeros_like(up)                      # largest up-jump in the previous ROUNDTRIP_LAG events
+        for d in range(1, ROUNDTRIP_LAG + 1):
+            best_up[:, d:] = np.maximum(best_up[:, d:], up[:, :-d])
+        return np.minimum(best_up, down).max(-1)
+
     panel = {
         "range": lambda Y: np.maximum.accumulate(cum(Y), axis=1) - np.minimum.accumulate(cum(Y), axis=1),
         "n_moves": lambda Y: np.cumsum(np.abs(phys(Y)[..., DMID]) > 0.25, axis=1).astype(float),
         "max_spread": lambda Y: phys(Y)[..., SPREAD],
         "queue_swing": lambda Y: np.abs(phys(Y)[..., LOG_BID] - phys(Y)[..., LOG_ASK] - imb_ref),
         "queue_jump": queue_jump,
+        "queue_roundtrip": queue_roundtrip,
     }
     if has_dt:
         if fast_log_dt is None:

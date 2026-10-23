@@ -98,6 +98,13 @@ All decisions below are fixed in `config/preregistration.yaml` before the test s
 
 ---
 
+> **Revision, 23 October 2026 (Stage-0 redesign, validation only).** The primary measure of H2 is now power at a
+> fixed false-alarm rate (share of injected windows with conformal p <= 0.05; 0.01 secondary), averaged over a grid of
+> injection strengths, instead of BH power at 5% prevalence; BH power and FDR remain as secondary measures. Reason: the
+> first Stage-0 pilot showed that BH could not reject anything at realistic calibration sizes and signal strengths.
+> The statistic panel gains `queue_roundtrip`, and the generator null gets more continuations for extreme windows so its
+> resolution matches the unconditional null's. Details and the go/no-go rule: `results/stage0_redesign.md`.
+
 ## 3. Method
 
 ### 3.1 Data
