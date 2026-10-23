@@ -1,0 +1,6 @@
+# On top of the generator repository's environment (lobresearch-torch), which supplies the generator itself.
+numpy
+scipy
+gudhi>=3.10
+POT            # optimal transport backend of gudhi.wasserstein
+pytest

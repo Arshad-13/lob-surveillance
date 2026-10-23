@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+*.egg-info/
+.venv/
+venv/
+
+# Large or regenerable artefacts: results are regenerated from code, data live in the generator repo
+results/cache/
+*.npz
+*.npy
+data/
