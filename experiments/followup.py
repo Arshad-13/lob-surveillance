@@ -125,8 +125,8 @@ def q2():
         n_cal = rolling(z["B_unc"], z["E_unc"])[1]
         rec = {arm: {det: arm_metrics(p, variants) for det, p in v.items()} for arm, v in arms.items()}
         rec["n_cal_rolling"] = n_cal
-        rec["false_alarm_by_day_original"] = {det: {int(d): float(np.mean(p_orig[det][day == d, 0] <= PRIMARY))
-                                                    for d in days} for det in ("gen", "unc")}
+        rec["false_alarm_by_day"] = {arm: {det: {int(d): float(np.mean(p[day == d, 0] <= PRIMARY)) for d in days}
+                                           for det, p in v.items()} for arm, v in arms.items()}
         floor = 2.0 / (m + 1)
         rec["refined_share"] = {"B": float(np.mean((z["B_g_first"] <= floor).any(-1))),
                                 "E_clean_original": float(np.mean((z["E_g_first"] <= floor).any(-1).any(-1))),
@@ -168,8 +168,9 @@ def q2():
         pw = ", ".join(f"{f} {np.mean([out['per_symbol'][ds][arm]['gen'][key][f] for ds in SYMBOLS]):.3f}/"
                        f"{np.mean([out['per_symbol'][ds][arm]['unc'][key][f] for ds in SYMBOLS]):.3f}" for f in FAMILIES)
         print(f"{arm:8s} false alarm gen/unc: {fa}\n         power: {pw}   within 0.10: {out['within_limit'][arm]}")
-    print("false alarm by day (original, gen):",
-          {short(ds): out["per_symbol"][ds]["false_alarm_by_day_original"]["gen"] for ds in SYMBOLS})
+    for arm in ("original", "V3"):
+        print(f"false alarm by day ({arm}, gen):", {short(ds): {d: round(v, 3) for d, v in out["per_symbol"][ds][
+            "false_alarm_by_day"][arm]["gen"].items()} for ds in SYMBOLS})
     print("refined share:", {short(ds): out["per_symbol"][ds]["refined_share"] for ds in SYMBOLS})
     print("repaired design:", repaired, "| outcome:", out["outcome"])
 

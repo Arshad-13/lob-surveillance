@@ -77,3 +77,43 @@ Whatever the outcome, the paper reports the original NO-GO, Q1, every arm of Q2 
   order (reported); under V2/V3, the calibration day is the day before by construction.
 - Tie-break for t(alpha): the largest observed p-value whose clean share is <= alpha; if no clean window has
   p <= alpha, t(alpha) = 0 and power is 0.
+
+## Results (2026-10-24, added after the analysis; nothing above was changed)
+
+Files: `results/followup_q1.json`, `results/followup_q2.json`; rerun job 32720 (same seed and settings,
+`--save-raw`, 2 h 09 min), outputs `results/raw/*.npz` and `results/pilot_strength_*_seed0_rerun.json`.
+
+**Q1 holds.** Size-matched power at alpha = 0.05, conditional / unconditional: spoofing 0.629 / 0.498
+(conditional at least as high on 5 of 6 symbols), stuffing 0.239 / 0.191 (6/6), ignition 0.376 / 0.259 (6/6).
+AUC 0.917 / 0.855, 0.622 / 0.567, 0.780 / 0.714. At alpha = 0.01 (secondary) the conditional detector is behind
+for spoofing (0.140 / 0.163) and stuffing (0.042 / 0.091) and ahead for ignition (0.137 / 0.101).
+
+**Integrity check passed:** the rerun's conformal p-values under the original rule equal the saved ones on every
+symbol (max absolute difference 0).
+
+**Q2.** Largest false-alarm rate at alpha = 0.05 over the six symbols (conditional / unconditional) and pooled
+power at alpha = 0.05 (spoof, stuffing, ignition; conditional / unconditional):
+
+| Arm | max false alarm | spoof | stuffing | ignition | <= 0.10 everywhere |
+|---|---|---|---|---|---|
+| original | 0.110 / 0.079 | 0.691 / 0.414 | 0.275 / 0.163 | 0.419 / 0.219 | no |
+| V1 | 0.102 / 0.079 | 0.682 / 0.414 | 0.269 / 0.163 | 0.409 / 0.219 | no (XRP) |
+| V2 | 0.077 / 0.062 | 0.657 / 0.444 | 0.249 / 0.173 | 0.394 / 0.235 | yes |
+| V3 | 0.075 / 0.062 | 0.655 / 0.444 | 0.248 / 0.173 | 0.390 / 0.235 | yes |
+
+Repaired design: **V3** (V1 fails on XRP). Under V3 the conditional detector has higher power on 3 of 3
+families. **Overall outcome: GO.** V3 replaces the Stage-0 design in every later stage.
+
+Not within nominal under any arm: under V3, XRP 0.075 (conditional) and SOL 0.062 (unconditional) exceed
+0.05 + 2 SE = 0.061.
+
+Treatment check: under V1 the share of refined clean E windows fell from 96-100% to 8-13% (B: 7-13%).
+
+Attribution (descriptive): mean conditional false-alarm rate 0.070 (original), 0.065 (V1), 0.055 (V3); matched
+resolution removed about a quarter of the excess over 0.05 and day-before calibration about half. By day
+(validation days 4/5/6, conditional, original rule): DOGE 0.058/0.069/0.091 and LTC 0.073/0.083/0.091 rise with
+distance from day 3, XRP 0.104/0.095/0.133; BTC, ETH, SOL show no trend. Under V3, XRP day 4 (still calibrated
+on day 3) stays at 0.096; days 5 and 6 fall to 0.065 and 0.063.
+
+Caveat: this rule was written after the Stage-0 result was known and V3 was selected on the same validation days.
+The test-day run is its confirmation.

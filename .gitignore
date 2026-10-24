@@ -11,3 +11,10 @@ results/cache/
 *.npz
 *.npy
 data/
+!results/raw/*.npz
+
+# LaTeX build products
+manuscript/*.log
+manuscript/*.aux
+manuscript/*.out
+manuscript/*.xdv
