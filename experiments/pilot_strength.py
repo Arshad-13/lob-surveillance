@@ -67,6 +67,9 @@ def main():
     ap.add_argument("--m", type=int, default=200)
     ap.add_argument("--m-refine", type=int, default=1000, help="continuations when a window beats almost all of --m")
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--save-raw", action="store_true",
+                    help="also save per-statistic p-values and window days (results/raw/*.npz) and write the JSON as "
+                         "*_rerun.json; nothing else changes (Stage-0 follow-up, results/stage0_followup.md)")
     a = ap.parse_args()
     t_start = time.perf_counter()
     provenance = generator_provenance()
@@ -84,9 +87,9 @@ def main():
     names = list(panel_at(A[0]))
     ref = np.concatenate([stat_matrix(panel_at(s), S[s:s + H][None], names) for s in A])
 
-    pv, n_refined = {}, {"B": 0, "E": 0}
+    pv, n_refined, g_first = {}, {"B": 0, "E": 0}, {}
     for set_name, positions in (("B", B), ("E", E)):
-        gp, up = [], []
+        gp, up, gf = [], [], []
         t0 = time.perf_counter()
         for i, s in enumerate(positions):
             panel = panel_at(s)
@@ -97,6 +100,7 @@ def main():
             obs = stat_matrix(panel, windows, names)
             sim = stat_matrix(panel, null.simulate(s, a.m, rng), names)
             g = generator_pvalues(sim, obs, rng=rng)
+            gf.append(g)
             if a.m_refine > a.m and (g <= 2.0 / (a.m + 1)).any():
                 # some variant beats (nearly) every continuation: simulate more, so the generator's p-values reach a
                 # resolution comparable to the unconditional null's reference set (same rule for B and E)
@@ -108,6 +112,7 @@ def main():
             if i % 200 == 0:
                 print(f"[{a.dataset}] {set_name} {i}/{len(positions)} ({time.perf_counter() - t0:.0f}s)", flush=True)
         pv[set_name] = {"gen": np.array(gp), "unc": np.array(up)}       # [n, variants, statistics]
+        g_first[set_name] = np.array(gf)
 
     res = {"dataset": a.dataset, "seed": a.seed, "m": a.m, "m_refine": a.m_refine, "n_refined": n_refined,
            "statistics": names, "grid": GRID, "variants": VARIANTS,
@@ -128,7 +133,16 @@ def main():
     res["generator_raw_calibration"] = {f"share_p_le_{t}": float(np.mean(comb <= t)) for t in (0.01, 0.05, 0.1, 0.5)}
     res["seconds"] = time.perf_counter() - t_start
     os.makedirs(os.path.join(ROOT, "results"), exist_ok=True)
-    path = os.path.join(ROOT, "results", f"pilot_strength_{a.dataset}_seed{a.seed}.json")
+    suffix = ""
+    if a.save_raw:
+        suffix = "_rerun"
+        os.makedirs(os.path.join(ROOT, "results", "raw"), exist_ok=True)
+        day_of = lambda pos: np.searchsorted([d[0] for d in days], pos, side="right") - 1
+        np.savez_compressed(os.path.join(ROOT, "results", "raw", f"pilot_strength_{a.dataset}_seed{a.seed}.npz"),
+                            m=a.m, B_pos=B, E_pos=E, B_day=day_of(B), E_day=day_of(E), statistics=np.array(names),
+                            B_g_first=g_first["B"][:, 0], B_g_all=pv["B"]["gen"][:, 0], B_unc=pv["B"]["unc"][:, 0],
+                            E_g_first=g_first["E"], E_g_all=pv["E"]["gen"], E_unc=pv["E"]["unc"])
+    path = os.path.join(ROOT, "results", f"pilot_strength_{a.dataset}_seed{a.seed}{suffix}.json")
     with open(path, "w") as f:
         json.dump(res, f)
     for det in ("gen", "unc"):
