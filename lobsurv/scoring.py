@@ -4,7 +4,7 @@ Window scores and discoveries for the two detectors compared in H2 (proposal Sec
   generator    per statistic, the Monte Carlo p-value of the observed window against continuations the frozen
                generator simulates from the window's own context (conditional null)
   uncond       per statistic, the p-value against the same statistic on a reference set of clean real windows
-               (unconditional null: baseline B1, the v1 design done correctly)
+               (unconditional null: baseline B1)
 
 Both combine the per-statistic p-values by the Cauchy combination and use score = -log(combined p); both are
 then turned into conformal p-values against the scores of the same clean calibration windows, and

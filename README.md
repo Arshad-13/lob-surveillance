@@ -9,8 +9,6 @@ This is the data-science (DS) track. It continues the generator work in the comp
 [orderflow-noise-models](https://github.com/Arshad-13/orderflow-noise-models) and imports its code instead of copying it.
 
 - Research proposal: [`proposal/proposal.md`](proposal/proposal.md)
-- What changed from the v1 SMFI proposal, and why: [`proposal/v1_review.md`](proposal/v1_review.md)
-- v1 as it was (PDF, long markdown version, engine): [`archive/v1_smfi/`](archive/v1_smfi/), not maintained
 
 ## Status (2026-10-21)
 
@@ -28,8 +26,7 @@ lobsurv/
   null_model.py    GeneratorNull: the companion generator as a conditional null; provenance capture
   persistence.py   sliding-window Rips persistence of log-signature clouds (H0 = MST, H1)
 tests/             unit tests; test_null_model.py runs the real generator (opt-in)
-proposal/          proposal and v1 review
-archive/v1_smfi/   the retired v1 proposal and engine
+proposal/          research proposal
 ```
 
 ## Setup
@@ -54,4 +51,4 @@ number of uncommitted files), so each number can be traced to the generator vers
 - The test split is touched once, with the configuration frozen in `config/preregistration.yaml` beforehand.
 - The generator configuration (`slow-s`, pool `W30000`) is frozen. Do not tune it here; a generator change
   (such as fix G1) is made and validated in the generator repository and reported as a new version.
-- Cite only papers you have seen. v1 cited two papers that could not be found (see the v1 review).
+- Cite only papers you have seen.

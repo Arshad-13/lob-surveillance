@@ -1,7 +1,7 @@
 """
 Sliding-window persistence of log-signature point clouds: the topological candidate statistic.
 
-This replaces the v1 SMFI engine (archive/v1_smfi). What it is, stated plainly:
+What it is, stated plainly:
   - each window of W consecutive log-signature vectors is a point cloud; its Vietoris-Rips
     persistence (2-skeleton, so H0 and H1) is computed with GUDHI;
   - the signal is the p-Wasserstein distance between the diagrams of consecutive windows.

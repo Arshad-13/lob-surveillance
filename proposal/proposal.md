@@ -1,7 +1,7 @@
 # Ordinary for This Moment? Generator-Calibrated Surveillance of Limit Order Books with False-Discovery Control
 
 **Arshad Khatib** — B.Tech in Artificial Intelligence (5th semester), SVNIT Surat
-Research proposal, version 2, 21 October 2026. Replaces the SMFI proposal of August 2026; what changed and why is in `v1_review.md`.
+Research proposal, 21 October 2026.
 
 ---
 
@@ -46,7 +46,7 @@ The generator project asked whether synthetic order flow is realistic. This stud
 | Conformal calibration on real clean windows | turns ranks into p-values | validity, regardless of generator errors |
 | Benjamini–Hochberg | chooses which windows to flag | false-discovery control |
 
-If the generator is wrong, the test loses power but stays valid. That is the right failure mode for a surveillance tool, and it is what v1 lacked.
+If the generator is wrong, the test loses power but stays valid. That is the right failure mode for a surveillance tool.
 
 The work also flows back to the generator. Using the generator as a null exposes defects that its own fidelity tests did not, such as the LOBSTER queue-size jitter. Any fix is validated and reported as a new generator version (§6.1).
 
@@ -79,7 +79,7 @@ All decisions below are fixed in `config/preregistration.yaml` before the test s
 - *Also reported:* on clean test windows, the discovery count and a QQ plot of the p-values.
 - *Diagnostic, not a pass criterion:* we also report the uncalibrated generator p-values' miscalibration in the tail (splitting estimates against real exceedance frequencies). This measures how far the generator alone can be trusted.
 
-**H2 — conditioning buys power (primary).** At q = 0.10, the generator-conditional score detects more injected windows than an otherwise identical pipeline whose null is the unconditional distribution of the same statistics over clean calibration windows. That unconditional pipeline is the v1 design, done correctly.
+**H2 — conditioning buys power (primary).** At q = 0.10, the generator-conditional score detects more injected windows than an otherwise identical pipeline whose null is the unconditional distribution of the same statistics over clean calibration windows.
 - *Test:* a window-level paired comparison (McNemar test, pooled over symbols) plus a symbol-level sign test (6 symbols).
 - *Supported* if both give p < 0.05 in favour of conditioning.
 - *Refuted* if conditioning has lower power on 4 or more symbols.
@@ -204,8 +204,6 @@ H0 death times *are* the minimum-spanning-tree edge lengths (checked in `tests/t
 
 We report the frontier max{E(θ) : D(θ) ≤ β} for β ∈ {0.2, 0.5}. If R fails, M1 is reported only as footprint size versus power, and we say that the price effect is unmeasured.
 
-This replaces v1's constrained min–max (CAEP). The generator cannot express v1's adversary, and the frontier is the quantity that adversary was meant to bound.
-
 ### 3.9 Cross-asset (H5)
 
 - **Bins:** wall-clock bins of 5 s.
@@ -319,6 +317,6 @@ Status: **V** = verified on 2026-10-21 (title, authors and venue seen); **K** = 
 | Tao, X., Day, A., Ling, L., Drapeau, S. (2022). On detecting spoofing strategies in high-frequency trading. *Quantitative Finance* 22(8), 1405–1425. | V |
 | Turiel, J. D., Barucca, P., Aste, T. (2022). Simplicial persistence of financial markets: filtering, generative processes and structural risk. *Entropy*. | V |
 | Wang, X., Wellman, M. P. Agent-based modelling of spoofing in limit order markets. (Venue and year to confirm.) | to verify |
-| Companion: Khatib, A., et al. Closed-form level-1 order-book generator (orderflow-noise-models repository; v2 results in `benchmark_results/v2/`). | — |
+| Companion: Khatib, A., et al. Closed-form level-1 order-book generator (orderflow-noise-models repository; results in `benchmark_results/v2/`). | — |
 
 Do not add a reference to this list without seeing the paper itself.
