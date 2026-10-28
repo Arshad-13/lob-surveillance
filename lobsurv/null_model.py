@@ -38,8 +38,9 @@ def generator_repo() -> str:
     return repo
 
 
-GENERATOR_FILES = ["ML/benchmark/pilot_activity.py", "ML/benchmark/pilot_splitting.py", "ML/benchmark/common.py",
-                   "ML/benchmark/run_benchmark.py", "ML/ctesn/splitting.py", "ML/ctesn/readout.py",
+GENERATOR_FILES = ["ML/benchmark/pilot_activity.py", "ML/benchmark/pilot_splitting.py", "ML/benchmark/knn.py",
+                   "ML/benchmark/common.py", "ML/benchmark/run_benchmark.py", "ML/ctesn/splitting.py",
+                   "ML/ctesn/readout.py",
                    "shared_resources/lob_data.py", "shared_resources/binance_data.py"]
 
 
@@ -51,7 +52,7 @@ def generator_provenance() -> Dict:
     """
     import hashlib
     repo = generator_repo()
-    out = {"repo": repo, "file_sha256": {}}
+    out = {"repo": repo, "file_sha256": {}, "knn_device": os.environ.get("LOB_KNN_DEVICE", "cpu")}
     for f in GENERATOR_FILES:
         p = os.path.join(repo, f)
         if os.path.exists(p):
