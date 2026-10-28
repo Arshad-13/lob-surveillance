@@ -42,8 +42,10 @@ refinement triggered by injected copies and, mostly, to drift from the calibrati
 and each day calibrated on the day before, the largest false-alarm rate fell to \faMaxGenVThree{} and power
 remained higher in all three families. A confirmatory run of this design on six unread test days, with its rule
 committed beforehand, returned \confOutcome: the unconditional detector exceeded the false-alarm limit on two
-symbols, while the conditional detector stayed between \faConfGenXrp{} and \faConfMaxGen{} on all six. Its power
-was higher for spoofing and quote stuffing but lower for momentum ignition.
+symbols, while the conditional detector stayed between \faConfGenXrp{} and \faConfMaxGen{} on all six. At matched
+false-alarm rates its power was higher for spoofing and quote stuffing on every symbol, but not for momentum
+ignition. In an exploratory analysis, the unconditional false alarms came on days when the market became much
+busier than the calibration day.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -464,15 +466,45 @@ at $q=0.10$ on mixtures with 5\% prevalence, the conditional detector makes almo
 \bhConfGenIgnit), while the unconditional detector reaches power \bhConfUncStuff--\bhConfUncIgnit{} at a
 false-discovery proportion of about \fdrConfUncSpoof, twice the target.
 
-Two observations were not part of the rule and are exploratory. First, ignition reversed: on the validation days
-under the same design the conditional detector led (\powVThreeGenIgnit{} against \powVThreeUncIgnit), and on the
-test days it is behind on all six symbols. Part of that gap is the unconditional detector's looser threshold,
-since at matched size the conditional detector is ahead (\mpowConfGenIgnit{} against \mpowConfUncIgnit), but its
-AUC is also lower, so its ranking of ignition windows is no better. We do not know why. Second, the rule's bootstrap interval resamples
-windows within each symbol and holds the symbols fixed, so it ignores variation between symbols. Per symbol, the
-conditional detector has higher power for spoofing on only \dConfSymsSpoof{} of six symbols and for stuffing on
-\dConfSymsStuff. Even without the validity failure, the narrow intervals of Table~\ref{tab:confirm} would have
-overstated how firmly the power advantage is established.
+\textbf{Exploratory analyses.} The rest of this subsection was not part of the rule; we added it after the
+decision, and none of it changes the outcome.
+
+\emph{Ignition reversed.} On the validation days under the same design the conditional detector led
+(\powVThreeGenIgnit{} against \powVThreeUncIgnit); on the test days it is behind on all six symbols. Part of that
+gap is the unconditional detector's looser threshold, since at matched size the conditional detector is ahead
+(\mpowConfGenIgnit{} against \mpowConfUncIgnit), but its AUC is also lower, so its ranking of ignition windows is
+no better. We do not know why.
+
+\emph{Symbols as replicates.} The rule's bootstrap resamples windows within each symbol and holds the symbols
+fixed, so it ignores variation between symbols: the conditional detector has higher raw power for spoofing on
+only \dConfSymsSpoof{} of six symbols and for stuffing on \dConfSymsStuff. Resampling symbols as well as windows
+gives 95\% intervals for the pooled difference of \(\xBootLoSpoof\) to \xBootHiSpoof{} for spoofing,
+\(\xBootLoStuff\) to \xBootHiStuff{} for stuffing and \(\xBootLoIgnit\) to \(\xBootHiIgnit\) for ignition (a
+$t$~interval over the six per-symbol means is wider still). Under this analysis the power condition would not
+have held either. At matched size the picture is firmer: $t$~intervals over symbols for the difference in
+size-matched power are \xMpowTLoSpoof{} to \xMpowTHiSpoof{} for spoofing and \xMpowTLoStuff{} to \xMpowTHiStuff{}
+for stuffing, and include zero for ignition (\(\xMpowTLoIgnit\) to \xMpowTHiIgnit). The raw-power difference is
+uncertain mostly because the unconditional detector's threshold varies so much from symbol to symbol.
+
+\emph{Where the unconditional false alarms came from.} The unconditional detector exceeded 0.10 on
+\xSpikeDays{} of the \xJumpDays{} symbol-days. On every one of them the share of events that move the mid was at
+least \xSpikeRatioMin{} times that of the calibration day before, against a median ratio of \xCalmRatioMedian{}
+on the other days. Across all symbol-days, the unconditional false-alarm rate rises with this ratio (Spearman
+$\rho=\xRhoUnc$) and the conditional one does not ($\rho=\xRhoGen$, $p=\xRhoGenP$; Fig.~\ref{fig:jump}). On
+\xWorstSym{} day \xWorstDay, where the mid moved on \xWorstRatio{} times as many events as the day before,
+\xWorstTailUnc{} of clean windows had an unconditional p-value of at most 0.01 for the number of mid moves,
+against \xWorstTailGen{} under the generator. The pooled reference set reads a busier market as unusual; the
+generator, simulating from each window's own busy context, does not. Symbol-days are not independent, so we do
+not treat the correlation as a test.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/fig_jump.pdf}
+\caption{Test days, exploratory: each symbol-day's realised false-alarm rate at $\alpha=0.05$ against the ratio of
+its mid-move share to that of its calibration day (log scale). Dotted: nominal 0.05; dashed: the rule's limit
+0.10.}
+\label{fig:jump}
+\end{figure}
 
 % =====================================================================================================
 \section{Discussion}
@@ -485,9 +517,9 @@ for spoofing and momentum ignition, whose footprints (a large same-price queue j
 small only relative to the current state of the book. Quote stuffing is hard for both detectors (AUC
 \aucGenStuff{} and \aucUncStuff), which says more about the panel than about the null: one-lot flickers of a
 best queue barely move any statistic in Table~\ref{tab:stats}. The test days support this reading for spoofing
-and stuffing, where the conditional detector kept the higher AUC and the higher size-matched power, but not for
-ignition: there its AUC and raw power were lower, and only its size-matched power was higher. Because the run
-failed on validity, the rule confirms the gain for no family, and for ignition even its direction is not settled.
+and stuffing, where the conditional detector kept the higher AUC and the higher size-matched power, also with symbols treated as
+replicates, but not for ignition: there its AUC and raw power were lower, and its size-matched power was no
+different. Because the run failed on validity, the rule confirms the gain for no family.
 
 \textbf{Where it is weak.} The advantage thins in the far tail. At size-matched $\alpha=0.01$ the conditional
 detector falls behind for spoofing and stuffing. Its p-values cannot go below $1/(M+1)$, and only windows that
@@ -503,9 +535,10 @@ simulation, early stopping, cached neighbours) must depend only on the window be
 makes a second point: a single calibration day is a fragile reference even for a model that conditions on
 context, because the generator's errors change from day to day. Day-before calibration is the simplest fix, and
 on the test days it was enough for the conditional detector but not for the unconditional one, which exceeded
-the limit on SOL and DOGE. One reading is that conditioning on the window's context absorbs part of the
-day-to-day change that a pooled reference set cannot; with six symbols and one run we cannot separate this from
-chance. Weighted conformal methods~\cite{tibshirani2019conformal,barber2023conformal} and online adjustment of the
+the limit on SOL and DOGE. The exploratory analysis of Section~\ref{sec:testresults} points to why: the
+unconditional false alarms came on days when the market became much busier than the day before, and conditioning
+on the window's context absorbed that change (Fig.~\ref{fig:jump}). This is one run on six symbols, and the
+analysis was not planned, so it is a hypothesis for the next pre-registered run rather than a finding. Weighted conformal methods~\cite{tibshirani2019conformal,barber2023conformal} and online adjustment of the
 level~\cite{gibbs2021adaptive} are principled alternatives that we have not tried.
 
 \textbf{Operational cost.} Rolling calibration assumes that yesterday was clean. Manipulated windows in the
@@ -516,8 +549,9 @@ lost power, not false alarms.
 \begin{itemize}
 \item \textbf{One confirmatory run.} The design was built on validation days and tested once, on six test days.
 That run was not a confirmation, and the reasons it gives (unconditional false alarms, the ignition reversal)
-rest on six symbols and six days. Its bootstrap ignores variation between symbols, so its intervals are too
-narrow.
+rest on six symbols and six days. Its bootstrap ignores variation between symbols; with symbols resampled
+too, the raw power differences for spoofing and stuffing are not distinguishable from zero. The analyses that
+explain the outcome were added after it.
 \item \textbf{Synthetic labels.} Injected footprints are a stand-in for manipulation. Power against real
 manipulation is unknown, and the study detects no real case.
 \item \textbf{Passive injection.} The market does not react to the injected orders. A real spoofer's effect on
@@ -543,7 +577,8 @@ within the false-alarm limit on every symbol and day; the unconditional one did 
 higher for spoofing and stuffing and lower for ignition, and the conditional detector stays weak at small
 $\alpha$. On these test days a generator-conditional null kept its false-alarm rate within the limit under day-to-day
 drift where a pooled null did not;
-that it is also more powerful is supported for two of three footprints, but not confirmed.
+that it is also more powerful holds at matched false-alarm rates for two of three footprints across symbols,
+in an analysis added after the run, and is not confirmed.
 
 \section*{Acknowledgment}
 The author thanks Sardar Vallabhbhai National Institute of Technology (SVNIT), Surat, for access to its

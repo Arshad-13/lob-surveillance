@@ -29,8 +29,15 @@ What the follow-up found: the excess false alarms came partly from adaptive Mont
 window's injected copies could trigger (so clean evaluation windows were scored at higher resolution than
 calibration windows) and mostly from drift between the calibration day and the evaluation days.
 
-Not decided by any rule, and reported in the paper as exploratory: momentum ignition reversed between validation
-and test days, and the test-day bootstrap holds the six symbols fixed, so its intervals are too narrow.
+Not decided by any rule, added after the test-day decision and reported in the paper as exploratory
+(`python -m experiments.exploratory_test` → [`exploratory_test.json`](results/exploratory_test.json)):
+
+- With symbols resampled as well as windows, the raw power differences for spoofing and stuffing include zero;
+  at matched false-alarm rates the conditional detector is ahead for both on every symbol, and level with the
+  unconditional one for momentum ignition, which reversed between validation and test days.
+- The unconditional false alarms came on days when the share of events moving the mid jumped relative to the
+  calibration day (Spearman ρ = 0.94 over 36 symbol-days); the conditional false-alarm rate does not follow it
+  (ρ = 0.16).
 [`stage0_pilot_plan.md`](results/stage0_pilot_plan.md) is the earlier pilot whose primary measure
 (Benjamini–Hochberg power) was replaced before Stage 0; the paper says why.
 
