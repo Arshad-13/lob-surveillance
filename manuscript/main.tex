@@ -87,7 +87,7 @@ p-values saved showed that the excess false alarms came partly from an asymmetry
 scored and mostly from drift between the calibration day and the evaluation days. With both repaired, every
 symbol stayed within the limit and the conditional detector kept higher power in all three families. The repair
 was chosen on the same validation days, so we ran it once on the six unread test days under a rule committed
-beforehand. That run is not a confirmation. The conditional detector held its false-alarm rate on every symbol and
+beforehand. That run is not a confirmation. The conditional detector stayed within the false-alarm limit on every symbol and
 every day, but the unconditional detector did not, and the rule required both; the power advantage held for two
 families and reversed for the third.
 
@@ -428,7 +428,9 @@ and is within that tolerance on every symbol. By day (Table~\ref{tab:confbyday})
 exceeds \faConfDayMaxGen, while the unconditional rate reaches \faConfDayMaxUnc{} (DOGE, day T5). The power condition would have held: the pooled difference at $\alpha=0.05$ is
 \dConfSpoof{} for spoofing (95\% interval \dConfLoSpoof{} to \dConfHiSpoof) and \dConfStuff{} for quote stuffing
 (\dConfLoStuff{} to \dConfHiStuff), but \(\dConfIgnit\) for momentum ignition (\(\dConfLoIgnit\) to
-\(\dConfHiIgnit\)). Under the rule this does not change the outcome.
+\(\dConfHiIgnit\)). Under the rule this does not change the outcome. The rule asks for both detectors to be valid
+because a difference in raw power is only a comparison of nulls when both thresholds mean the same false-alarm
+rate; here the unconditional detector's threshold was looser on every symbol.
 
 \begin{table}[t]
 \centering
@@ -464,7 +466,9 @@ false-discovery proportion of about \fdrConfUncSpoof, twice the target.
 
 Two observations were not part of the rule and are exploratory. First, ignition reversed: on the validation days
 under the same design the conditional detector led (\powVThreeGenIgnit{} against \powVThreeUncIgnit), and on the
-test days it is behind on all six symbols. We do not know why. Second, the rule's bootstrap interval resamples
+test days it is behind on all six symbols. Part of that gap is the unconditional detector's looser threshold,
+since at matched size the conditional detector is ahead (\mpowConfGenIgnit{} against \mpowConfUncIgnit), but its
+AUC is also lower, so its ranking of ignition windows is no better. We do not know why. Second, the rule's bootstrap interval resamples
 windows within each symbol and holds the symbols fixed, so it ignores variation between symbols. Per symbol, the
 conditional detector has higher power for spoofing on only \dConfSymsSpoof{} of six symbols and for stuffing on
 \dConfSymsStuff. Even without the validity failure, the narrow intervals of Table~\ref{tab:confirm} would have
@@ -534,10 +538,11 @@ $\alpha=0.05$. The pre-registered comparison still failed, on validity: a refine
 copies and a single calibration day made the conditional detector flag clean windows too often. Matching the
 refinement and calibrating on the day before keeps every symbol within the limit and keeps the power advantage.
 That repair was found on the same validation days on which it is judged, so we ran it once on six unread test
-days under a rule committed beforehand. The result was NOT CONFIRMED. The conditional detector held its
-false-alarm rate on every symbol and day; the unconditional one did not, and the rule required both. Power was
+days under a rule committed beforehand. The result was NOT CONFIRMED. The conditional detector stayed
+within the false-alarm limit on every symbol and day; the unconditional one did not, and the rule required both. Power was
 higher for spoofing and stuffing and lower for ignition, and the conditional detector stays weak at small
-$\alpha$. A generator-conditional null kept valid p-values under day-to-day drift where a pooled null did not;
+$\alpha$. On these test days a generator-conditional null kept its false-alarm rate within the limit under day-to-day
+drift where a pooled null did not;
 that it is also more powerful is supported for two of three footprints, but not confirmed.
 
 \section*{Acknowledgment}
