@@ -200,11 +200,86 @@ def q2(macros):
             macros[f"faDay{A}Xrp" + "ABC"[i]] = f3(ps["BN_XRPUSDT"]["false_alarm_by_day"][arm]["gen"][str(d)])
 
 
+def confirm(macros, path=None):
+    """Test-day confirmation (results/test_confirmation.md): macros, power and false-alarm table, false alarms by day."""
+    path = path or os.path.join(RES, "confirm_test_decision.json")
+    if not os.path.exists(path):
+        return
+    with open(path) as f:
+        c = json.load(f)
+    syms, ps = c["symbols"], c["per_symbol"]
+    macros.update({"confOutcome": c["outcome"], "confIntegrity": "match" if c["integrity_ok"] else "differ",
+                   "confCOne": "holds" if c["c1"] else "fails", "confCTwo": "holds" if c["c2"] else "fails",
+                   "confNConfirmed": len(c["confirmed_families"])})
+    n = [ps[ds]["gen"]["n"] for ds in syms]                         # clean evaluation windows per symbol
+    hours = [ps[ds]["hours"] for ds in syms]
+    macros.update({"nTestWinLo": min(n), "nTestWinHi": max(n),
+                   "confHoursLo": f"{min(hours):.1f}", "confHoursHi": f"{max(hours):.1f}"})
+    for key, K in (("calibration", "Cal"), ("eval_clean", "Clean"), ("eval_injected", "Inj")):
+        v = [ps[ds]["refined_share"][key] for ds in syms]
+        macros[f"refinedTest{K}Lo"], macros[f"refinedTest{K}Hi"] = pct(min(v)), pct(max(v))
+
+    def fa(det, ds, al="0.05"):
+        return ps[ds][det]["false_alarm"][al]
+
+    for det, D in (("gen", "Gen"), ("unc", "Unc")):
+        for ds in syms:
+            macros[f"faConf{D}{SYM_WORD[ds]}"] = f3(fa(det, ds))
+        vals = [fa(det, ds) for ds in syms]
+        macros[f"faConfMax{D}"], macros[f"faConfMean{D}"] = f3(max(vals)), f3(np.mean(vals))
+        macros[f"faConfStrictMax{D}"] = f3(max(fa(det, ds, "0.01") for ds in syms))
+        above = [short(ds) for ds in syms if fa(det, ds) > 0.05 + 2 * np.sqrt(0.05 * 0.95 / ps[ds][det]["n"])]
+        macros[f"nAboveTwoSEConf{D}"] = len(above)
+        macros[f"aboveTwoSEConf{D}"] = ", ".join(above) if above else "none"
+        macros[f"faConfDayMax{D}"] = f3(max(v for ds in syms for v in ps[ds][det]["false_alarm_by_day"].values()))
+        for f in FAMILIES:
+            for key, K in (("power_0.05", "pow"), ("power_0.01", "powStrict"), ("matched_power_0.05", "mpow"),
+                           ("matched_power_0.01", "mpowStrict"), ("auc", "auc"), ("bh", "bh"), ("bh_fdr", "fdr")):
+                macros[f"{K}Conf{D}{WORD[f]}"] = f3(c["pooled"][key][det][f])
+    for f in FAMILIES:
+        for al, A in (("0.05", ""), ("0.01", "Strict")):
+            d = c["power_difference"][al][f]
+            macros[f"dConf{A}{WORD[f]}"] = f3(d["estimate"])
+            macros[f"dConf{A}Lo{WORD[f]}"], macros[f"dConf{A}Hi{WORD[f]}"] = f3(d["lo"]), f3(d["hi"])
+            macros[f"dConf{A}Syms{WORD[f]}"] = d["symbols_gen_higher"]
+
+    # Table: power at alpha = 0.05 per family and symbol, the pooled difference with its interval, false alarms
+    cols = " & ".join(short(ds) for ds in syms)
+    lines = [r"\begin{tabular}{l" + "c" * (len(syms) + 1) + "}", r"\toprule", f"& {cols} & Mean" + r" \\", r"\midrule"]
+    for f in FAMILIES:
+        for det, lab in (("gen", "cond."), ("unc", "uncond.")):
+            vals = [ps[ds][det]["power_0.05"][f] for ds in syms]
+            name = f"{FAM_TEX[f]}, {lab}" if det == "gen" else f"\\quad {lab}"
+            lines.append(name + " & " + " & ".join(f2(v) for v in vals) + f" & {f3(np.mean(vals))}" + r" \\")
+        d = c["power_difference"]["0.05"][f]
+        lines.append(rf"\quad difference & \multicolumn{{{len(syms)}}}{{r}}{{95\% interval {f3(d['lo'])} to "
+                     rf"{f3(d['hi'])}}} & {f3(d['estimate'])}" + r" \\")
+    lines.append(r"\midrule")
+    for det, lab in (("gen", "False alarm, cond."), ("unc", r"\quad uncond.")):
+        vals = [fa(det, ds) for ds in syms]
+        lines.append(lab + " & " + " & ".join(f3(v) for v in vals) + f" & {f3(np.mean(vals))}" + r" \\")
+    lines += [r"\bottomrule", r"\end{tabular}"]
+    write("table_confirm", "\n".join(lines).replace("-0.", "$-$0."))
+
+    # Table: false-alarm rate at alpha = 0.05 by test day, both detectors
+    days = sorted(int(d) for d in ps[syms[0]]["gen"]["false_alarm_by_day"])
+    lines = [r"\begin{tabular}{l" + "c" * len(days) + "}", r"\toprule",
+             "Test day & " + " & ".join(f"T{d}" for d in days) + r" \\", r"\midrule"]
+    for det, lab in (("gen", "Conditional"), ("unc", "Unconditional")):
+        lines.append(rf"\multicolumn{{{1 + len(days)}}}{{l}}{{\emph{{{lab}}}}} \\")
+        for ds in syms:
+            by = ps[ds][det]["false_alarm_by_day"]
+            lines.append(short(ds) + " & " + " & ".join(f3(by[str(d)]) for d in days) + r" \\")
+    lines += [r"\bottomrule", r"\end{tabular}"]
+    write("table_confbyday", "\n".join(lines))
+
+
 def main():
     macros = {}
     stage0(macros)
     q1(macros)
     q2(macros)
+    confirm(macros)
     body = ["% generated by experiments/paper_assets.py from results/; do not edit"]
     for k, v in macros.items():
         assert k.isalpha(), k

@@ -84,3 +84,19 @@ statistics) and the LOBSTER secondary set are not part of this paper and are not
   first calibration, days 4-6 evaluation; 20 windows per day, 50/100 continuations, BN_LTCUSDT). The smoke output
   is not a result and was not kept.
 - On BN_LTCUSDT validation data, `part_days` gives the same six days of 998 windows as the Stage-0 day split.
+
+## Result (added after the run, 2026-10-28)
+
+Everything above was committed in 387dbd4 before the test split was read. The run (cluster job 32726) passed
+both integrity checks: generator files identical to Stage 0, code files identical to 387dbd4.
+
+Outcome: **NOT CONFIRMED (validity)** (`results/confirm_test_decision.json`).
+
+- Validity fails through the unconditional detector: realised false-alarm rate at alpha = 0.05 of 0.140 on SOL
+  and 0.232 on DOGE (limit 0.10). The conditional detector stays at 0.039-0.052 on every symbol.
+- The power condition would have held for spoofing (+0.083, 95% interval 0.079 to 0.087) and quote stuffing
+  (+0.042, 0.039 to 0.045), but not for momentum ignition (-0.116).
+- Reported, not decisive: size-matched power favours the conditional detector in all three families; at
+  alpha = 0.01 it is behind in all three.
+- Exploratory: ignition reversed relative to the validation days; the bootstrap holds symbols fixed, so its
+  intervals are too narrow.

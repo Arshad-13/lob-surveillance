@@ -37,13 +37,13 @@ into a p-value that is valid under exchangeability. On validation days of six Bi
 spoofing, quote stuffing and momentum ignition injected at 13 strengths, we compare this detector with one that
 differs only in using an unconditional null. The pre-registered comparison returned NO-GO: the conditional
 detector had more power in all three families, but its false-alarm rate at $\alpha=0.05$ reached \faGenXrp{} on
-one symbol, above the 0.10 limit. A follow-up, also fixed in advance, found two causes. Adaptive Monte Carlo
-refinement was triggered by a window's injected copies, so clean evaluation windows were scored at higher
-resolution than calibration windows, and the calibration day drifted from the evaluation days, which was the
-larger cause. With refinement matched and each day calibrated on the day before, the largest false-alarm rate
-fell to \faMaxGenVThree{} and power remained higher in all three families (spoofing \powVThreeGenSpoof{} against
-\powVThreeUncSpoof). At matched false-alarm rates the advantage held at $\alpha=0.05$ but not, for two families,
-at 0.01. The test days remain unread.
+one symbol, above the 0.10 limit. A follow-up, also fixed in advance, traced this to adaptive Monte Carlo
+refinement triggered by injected copies and, mostly, to drift from the calibration day. With refinement matched
+and each day calibrated on the day before, the largest false-alarm rate fell to \faMaxGenVThree{} and power
+remained higher in all three families. A confirmatory run of this design on six unread test days, with its rule
+committed beforehand, returned \confOutcome: the unconditional detector exceeded the false-alarm limit on two
+symbols, while the conditional detector stayed between \faConfGenXrp{} and \faConfMaxGen{} on all six. Its power
+was higher for spoofing and quote stuffing but lower for momentum ignition.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -71,7 +71,8 @@ The generator comes from our companion study~\cite{khatib2026noise}, which found
 realism of synthetic data depends on the noise model far more than on the model of the conditional mean. Here
 the generator is frozen and used for a different purpose: as the null model of a test.
 
-We evaluate the idea on \nSymbols{} Binance perpetual futures contracts, using validation days only, with
+We evaluate the idea on \nSymbols{} Binance perpetual futures contracts, on validation days and then once on
+held-out test days, with
 labelled injections of three manipulation footprints that are visible at level~1: touch spoofing, quote stuffing
 and momentum ignition, each at several strengths. The comparison that matters is with an unconditional
 detector that uses the same statistics, the same combination and the same conformal calibration, and differs
@@ -85,7 +86,10 @@ power in all three families, so its advantage is not an artefact of a looser thr
 p-values saved showed that the excess false alarms came partly from an asymmetry in how the two window sets were
 scored and mostly from drift between the calibration day and the evaluation days. With both repaired, every
 symbol stayed within the limit and the conditional detector kept higher power in all three families. The repair
-was chosen on the same validation days, so the test days are its confirmation.
+was chosen on the same validation days, so we ran it once on the six unread test days under a rule committed
+beforehand. That run is not a confirmation. The conditional detector held its false-alarm rate on every symbol and
+every day, but the unconditional detector did not, and the rule required both; the power advantage held for two
+families and reversed for the third.
 
 Our contributions are:
 \begin{itemize}
@@ -95,7 +99,8 @@ calibration for validity;
 so that their difference isolates the null;
 \item two documented failure modes of conformal validity in this setting, adaptive Monte Carlo refinement
 triggered by a window's injected copies and calibration-day drift, with a repair that keeps the power
-advantage;
+advantage on validation days;
+\item a confirmatory test-day run of the repaired design, reported in full although it did not confirm;
 \item code, result files and every decision rule, public at
 \url{https://github.com/Arshad-13/lob-surveillance}.
 \end{itemize}
@@ -242,8 +247,8 @@ reaction to the manipulation.
 We use Binance USD-M perpetual futures best-bid/ask updates (\texttt{bookTicker},
 \url{https://data.binance.vision}) for BTC, ETH, SOL, XRP, DOGE and LTC against USDT, from 1 February to 1 March
 2024, keeping the first 100{,}000 events after 14:00~UTC of each day. Days are split 18/6/6 into training,
-validation and test, as in the companion study. Every result in this paper uses training and validation days
-only; the test days have not been read.
+validation and test, as in the companion study. Stage~0 and the follow-up use training and validation days only.
+The test days were read once, by the confirmation run of Section~\ref{sec:confdesign}.
 
 \subsection{Window sets}
 Per symbol, the six validation days give three disjoint sets:
@@ -272,9 +277,26 @@ before this run.
 After the NO-GO, we wrote a follow-up rule, again before any new analysis (Section~\ref{sec:followup}). Both
 rules, with their commit dates, are in the repository.
 
+\subsection{Test-day confirmation}
+\label{sec:confdesign}
+The follow-up chose its repaired design on the same validation days on which it judged it. We therefore fixed one
+run of that design on the six test days, with its decision rule, and committed both before any test window was
+read. Per symbol, the reference set A holds up to 1{,}500 windows from validation days 4 and 5, the first calibration set is every clean window of validation
+day~6, and every window of test days T1--T6 is evaluated, clean and in the same \nVariants{} injected copies. Test
+day T1 is calibrated on validation day~6, and each later day on the clean windows of the day before. Resolution,
+statistics, combination and conformal p-values are those of the repaired design. The run is void unless the
+generator's files are byte-identical to those of Stage~0.
+
+The rule has two parts. \emph{Validity}: both detectors' realised false-alarm rate at $\alpha=0.05$ is at most
+0.10 on every symbol. \emph{Power}: a family is confirmed if the pooled difference in power at $\alpha=0.05$,
+conditional minus unconditional, has a 95\% bootstrap interval above zero; the interval resamples test windows
+within each symbol, a window together with its injected copies, 2{,}000 times, and holds the calibration sets
+fixed. The outcome is CONFIRMED if validity holds and at least two families are confirmed, and NOT CONFIRMED,
+for validity or for power, otherwise.
+
 \subsection{Compute}
 The generator runs on CPU. Stage~0 ran the six symbols in parallel on a 16-core cluster node, \hoursLo--\hoursHi{}
-hours per symbol.
+hours per symbol; the test-day run took \confHoursLo--\confHoursHi{} hours per symbol on the same kind of node.
 
 % =====================================================================================================
 \section{Results}
@@ -390,6 +412,64 @@ Stage-0 design and under V3. Day~4 is calibrated on day~3 in both.}
 \input{generated/table_byday}
 \end{table}
 
+\subsection{Test days}
+\label{sec:testresults}
+The confirmation run passed both integrity checks: the generator files were byte-identical to those of Stage~0,
+and the code files to those of the commit that fixed the rule. Each symbol contributed \nTestWinLo{} test windows
+(\confHoursLo--\confHoursHi{} hours per symbol). Matched resolution behaved as designed: \refinedTestCleanLo--\refinedTestCleanHi\%
+of clean test windows and \refinedTestCalLo--\refinedTestCalHi\% of calibration windows were scored with
+\Mrefine{} continuations.
+
+The outcome is \textbf{\confOutcome}. The validity condition fails, and it fails through the unconditional
+detector (Table~\ref{tab:confirm}). Its realised false-alarm rate at $\alpha=0.05$ is \faConfUncSol{} on SOL and
+\faConfUncDoge{} on DOGE, above the 0.10 limit, and it exceeds the sampling tolerance of a rate of 0.05 on all
+\nAboveTwoSEConfUnc{} symbols. The conditional detector's rate lies between \faConfGenXrp{} and \faConfMaxGen{}
+and is within that tolerance on every symbol. By day (Table~\ref{tab:confbyday}), the conditional rate never
+exceeds \faConfDayMaxGen, while the unconditional rate reaches \faConfDayMaxUnc{} (DOGE, day T5). The power condition would have held: the pooled difference at $\alpha=0.05$ is
+\dConfSpoof{} for spoofing (95\% interval \dConfLoSpoof{} to \dConfHiSpoof) and \dConfStuff{} for quote stuffing
+(\dConfLoStuff{} to \dConfHiStuff), but \(\dConfIgnit\) for momentum ignition (\(\dConfLoIgnit\) to
+\(\dConfHiIgnit\)). Under the rule this does not change the outcome.
+
+\begin{table}[t]
+\centering
+\caption{Test days: power at $\alpha=0.05$ per symbol (mean over each family's strength grid), the pooled
+difference with the 95\% interval of the decision rule, and the realised false-alarm rate on clean test windows.
+Cond.: generator-conditional null; uncond.: unconditional null.}
+\label{tab:confirm}
+\setlength{\tabcolsep}{3pt}
+\resizebox{\columnwidth}{!}{\input{generated/table_confirm}}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Test days: realised false-alarm rate at $\alpha=0.05$ by test day. Day T1 is calibrated on validation
+day~6, each later day on the day before.}
+\label{tab:confbyday}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\input{generated/table_confbyday}
+\end{table}
+
+The measures the rule lists as reported but not decisive qualify the power result in both directions. The
+unconditional detector's raw power is inflated by its loose threshold. With each detector's threshold set so that
+its false-alarm rate on the clean test windows is at most 0.05, the conditional detector is ahead in all three
+families: \mpowConfGenSpoof{} against \mpowConfUncSpoof{} for spoofing, \mpowConfGenStuff{} against
+\mpowConfUncStuff{} for stuffing and \mpowConfGenIgnit{} against \mpowConfUncIgnit{} for ignition. The AUC
+agrees for spoofing (\aucConfGenSpoof{} against \aucConfUncSpoof) and stuffing (\aucConfGenStuff{} against
+\aucConfUncStuff) but not for ignition (\aucConfGenIgnit{} against \aucConfUncIgnit). At $\alpha=0.01$ the
+conditional detector has lower power in all three families, so the far tail remains its weak point. With Benjamini--Hochberg
+at $q=0.10$ on mixtures with 5\% prevalence, the conditional detector makes almost no discoveries (power at most
+\bhConfGenIgnit), while the unconditional detector reaches power \bhConfUncStuff--\bhConfUncIgnit{} at a
+false-discovery proportion of about \fdrConfUncSpoof, twice the target.
+
+Two observations were not part of the rule and are exploratory. First, ignition reversed: on the validation days
+under the same design the conditional detector led (\powVThreeGenIgnit{} against \powVThreeUncIgnit), and on the
+test days it is behind on all six symbols. We do not know why. Second, the rule's bootstrap interval resamples
+windows within each symbol and holds the symbols fixed, so it ignores variation between symbols. Per symbol, the
+conditional detector has higher power for spoofing on only \dConfSymsSpoof{} of six symbols and for stuffing on
+\dConfSymsStuff. Even without the validity failure, the narrow intervals of Table~\ref{tab:confirm} would have
+overstated how firmly the power advantage is established.
+
 % =====================================================================================================
 \section{Discussion}
 
@@ -400,21 +480,28 @@ threshold-free AUC, the conditional detector separates injected from clean copie
 for spoofing and momentum ignition, whose footprints (a large same-price queue jump, fast mid moves) are large or
 small only relative to the current state of the book. Quote stuffing is hard for both detectors (AUC
 \aucGenStuff{} and \aucUncStuff), which says more about the panel than about the null: one-lot flickers of a
-best queue barely move any statistic in Table~\ref{tab:stats}.
+best queue barely move any statistic in Table~\ref{tab:stats}. The test days support this reading for spoofing
+and stuffing, where the conditional detector kept the higher AUC and the higher size-matched power, but not for
+ignition: there its AUC and raw power were lower, and only its size-matched power was higher. Because the run
+failed on validity, the rule confirms the gain for no family, and for ignition even its direction is not settled.
 
 \textbf{Where it is weak.} The advantage thins in the far tail. At size-matched $\alpha=0.01$ the conditional
 detector falls behind for spoofing and stuffing. Its p-values cannot go below $1/(M+1)$, and only windows that
 reach the floor get \Mrefine{} continuations, while the unconditional detector always compares with \nRef{}
-reference windows. More continuations would help at linear cost: Stage~0 already took \hoursLo--\hoursHi{}
-hours per symbol on a cluster node.
+reference windows. On the test days it was behind in all three families at $\alpha=0.01$ and made almost no
+Benjamini--Hochberg discoveries. More continuations would help at linear cost: Stage~0 already took
+\hoursLo--\hoursHi{} hours per symbol on a cluster node.
 
 \textbf{Exchangeability is a property of the whole pipeline.} Conformal validity needs calibration and evaluation
 windows to be scored by the same procedure. Our refinement rule satisfied this on paper and broke it in practice,
 because a clean window's resolution depended on its injected siblings. Any adaptive step in scoring (extra
 simulation, early stopping, cached neighbours) must depend only on the window being scored. The drift result
 makes a second point: a single calibration day is a fragile reference even for a model that conditions on
-context, because the generator's errors change from day to day. Day-before calibration is the simplest fix.
-Weighted conformal methods~\cite{tibshirani2019conformal,barber2023conformal} and online adjustment of the
+context, because the generator's errors change from day to day. Day-before calibration is the simplest fix, and
+on the test days it was enough for the conditional detector but not for the unconditional one, which exceeded
+the limit on SOL and DOGE. One reading is that conditioning on the window's context absorbs part of the
+day-to-day change that a pooled reference set cannot; with six symbols and one run we cannot separate this from
+chance. Weighted conformal methods~\cite{tibshirani2019conformal,barber2023conformal} and online adjustment of the
 level~\cite{gibbs2021adaptive} are principled alternatives that we have not tried.
 
 \textbf{Operational cost.} Rolling calibration assumes that yesterday was clean. Manipulated windows in the
@@ -423,16 +510,18 @@ lost power, not false alarms.
 
 \section{Limitations}
 \begin{itemize}
-\item \textbf{Validation days only.} Every number here comes from validation days, which were also used to
-design the detector. The test days remain unread; a confirmatory run on them is the next step.
+\item \textbf{One confirmatory run.} The design was built on validation days and tested once, on six test days.
+That run was not a confirmation, and the reasons it gives (unconditional false alarms, the ignition reversal)
+rest on six symbols and six days. Its bootstrap ignores variation between symbols, so its intervals are too
+narrow.
 \item \textbf{Synthetic labels.} Injected footprints are a stand-in for manipulation. Power against real
 manipulation is unknown, and the study detects no real case.
 \item \textbf{Passive injection.} The market does not react to the injected orders. A real spoofer's effect on
 other traders is not modelled.
 \item \textbf{Level 1 only.} Layering at depth and schemes that span venues are invisible here.
 \item \textbf{Repair chosen on the same data.} The follow-up rule was written after the Stage-0 result was
-known, and its repaired design was selected on the validation days it is evaluated on. Its false-alarm control
-is not confirmed until the test run.
+known, and its repaired design was selected on the validation days it is evaluated on. On the test days the
+conditional detector's false-alarm control held, but the comparison as a whole was not confirmed.
 \item \textbf{One seed, one month, six symbols.} The comparison rests on one injection seed and on February 2024
 crypto futures.
 \end{itemize}
@@ -444,8 +533,12 @@ footprints under the same conformal calibration, and the gain survived matching 
 $\alpha=0.05$. The pre-registered comparison still failed, on validity: a refinement rule that looked at injected
 copies and a single calibration day made the conditional detector flag clean windows too often. Matching the
 refinement and calibrating on the day before keeps every symbol within the limit and keeps the power advantage.
-That repair was found on the same validation days on which it is judged. The next step is one run of the
-repaired design on the six unread test days, with its decision rule committed before the run.
+That repair was found on the same validation days on which it is judged, so we ran it once on six unread test
+days under a rule committed beforehand. The result was NOT CONFIRMED. The conditional detector held its
+false-alarm rate on every symbol and day; the unconditional one did not, and the rule required both. Power was
+higher for spoofing and stuffing and lower for ignition, and the conditional detector stays weak at small
+$\alpha$. A generator-conditional null kept valid p-values under day-to-day drift where a pooled null did not;
+that it is also more powerful is supported for two of three footprints, but not confirmed.
 
 \section*{Acknowledgment}
 The author thanks Sardar Vallabhbhai National Institute of Technology (SVNIT), Surat, for access to its
