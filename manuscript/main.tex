@@ -497,6 +497,27 @@ against \xWorstTailGen{} under the generator. The pooled reference set reads a b
 generator, simulating from each window's own busy context, does not. Symbol-days are not independent, so we do
 not treat the correlation as a test.
 
+\emph{Other injection seeds.} Every run so far used one seed, which fixes both where the footprints land and the
+generator's draws. We reran the validation days under two more seeds with the same settings and scored all
+\seedCount{} with V3 (Table~\ref{tab:seeds}; no test data were read). The largest false-alarm rate over symbols and seeds
+was \seedFaMaxGen{} for the conditional detector and \seedFaMaxUnc{} for the unconditional one. Under every seed
+the conditional detector had the higher power in all three families, and the higher size-matched power on at
+least \seedMpowSymMinSpoof, \seedMpowSymMinStuff{} and \seedMpowSymMinIgnit{} of six symbols for spoofing,
+stuffing and ignition. For spoofing its size-matched power ranged from \seedMpowGenLoSpoof{} to
+\seedMpowGenHiSpoof{} over seeds, against \seedMpowUncLoSpoof--\seedMpowUncHiSpoof{} for the unconditional
+detector, and neither detector's AUC moved by more than \seedAucRangeMax{} in any family. The validation result does not depend on the seed;
+the test days were run under one seed.
+
+\begin{table}[t]
+\centering
+\caption{Validation days under three injection seeds, design V3, added after the test-day decision: the largest
+realised false-alarm rate over the six symbols and power at $\alpha=0.05$ (means over strengths and symbols).
+Bold: the higher power of the pair. Seed~0 is the V3 row of Table~\ref{tab:q2}.}
+\label{tab:seeds}
+\setlength{\tabcolsep}{3pt}
+\resizebox{\columnwidth}{!}{\input{generated/table_seeds}}
+\end{table}
+
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig_jump.pdf}
@@ -560,8 +581,9 @@ other traders is not modelled.
 \item \textbf{Repair chosen on the same data.} The follow-up rule was written after the Stage-0 result was
 known, and its repaired design was selected on the validation days it is evaluated on. On the test days the
 conditional detector's false-alarm control held, but the comparison as a whole was not confirmed.
-\item \textbf{One seed, one month, six symbols.} The comparison rests on one injection seed and on February 2024
-crypto futures.
+\item \textbf{One month, six symbols, one test-day seed.} The comparison rests on February 2024 crypto futures.
+Two further injection seeds left the validation result unchanged (Table~\ref{tab:seeds}), but the test days were
+run under one seed.
 \end{itemize}
 
 \section{Conclusion}
@@ -570,7 +592,8 @@ futures contracts, conditioning the null on each window's context raised power a
 footprints under the same conformal calibration, and the gain survived matching the false-alarm rate at
 $\alpha=0.05$. The pre-registered comparison still failed, on validity: a refinement rule that looked at injected
 copies and a single calibration day made the conditional detector flag clean windows too often. Matching the
-refinement and calibrating on the day before keeps every symbol within the limit and keeps the power advantage.
+refinement and calibrating on the day before keeps every symbol within the limit and keeps the power advantage,
+under each of three injection seeds.
 That repair was found on the same validation days on which it is judged, so we ran it once on six unread test
 days under a rule committed beforehand. The result was NOT CONFIRMED. The conditional detector stayed
 within the false-alarm limit on every symbol and day; the unconditional one did not, and the rule required both. Power was

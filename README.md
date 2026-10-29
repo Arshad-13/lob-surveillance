@@ -38,6 +38,11 @@ Not decided by any rule, added after the test-day decision and reported in the p
 - The unconditional false alarms came on days when the share of events moving the mid jumped relative to the
   calibration day (Spearman ρ = 0.94 over 36 symbol-days); the conditional false-alarm rate does not follow it
   (ρ = 0.16).
+- Validation days under three injection seeds (`python -m experiments.seeds` →
+  [`seeds_validation.json`](results/seeds_validation.json); seeds 1 and 2 from cluster jobs 32842 and 32843): under
+  V3 the largest false-alarm rate was 0.075 (conditional) and 0.070 (unconditional), and the conditional detector
+  had the higher power in all three families under every seed.
+
 [`stage0_pilot_plan.md`](results/stage0_pilot_plan.md) is the earlier pilot whose primary measure
 (Benjamini–Hochberg power) was replaced before Stage 0; the paper says why.
 
@@ -55,6 +60,10 @@ python -m experiments.followup q2
 # Test-day confirmation, per symbol, then the decision over all symbols
 python -m experiments.confirm_test run --dataset BN_BTCUSDT --split test
 python -m experiments.confirm_test decide --split test
+# Exploratory, after the decision: test-day analyses; validation days under seeds 1 and 2, then all seeds under V3
+python -m experiments.exploratory_test
+python -m experiments.pilot_strength --dataset BN_BTCUSDT --max-windows 1500 --seed 1 --save-raw
+python -m experiments.seeds
 # Every number and table of the paper
 python -m experiments.paper_assets
 ```
